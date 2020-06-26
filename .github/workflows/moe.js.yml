@@ -1,0 +1,38 @@
+# This workflow will install catalyst-frontend and attempt to build a minimal theme from some gist input.
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
+
+name: NPM install and use MoE
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [10.x, 12.x, 14.x]
+
+    steps:
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+    - run: npm install -g catalyst-frontend
+    - run: mkdir -p scss/example
+    - run: wget -O .yo-rc.json https://gist.githubusercontent.com/xurizaemon/6dc1fc0cb3f9a589fc043dab7dd0146f/raw/ca9e4de78cd9d4f16617cb5761c9f6936b6de535/.yo-rc.json
+    - run: wget -O package.json https://gist.githubusercontent.com/xurizaemon/6dc1fc0cb3f9a589fc043dab7dd0146f/raw/ca9e4de78cd9d4f16617cb5761c9f6936b6de535/package.json
+    - run: wget -O package-lock.json https://gist.githubusercontent.com/xurizaemon/6dc1fc0cb3f9a589fc043dab7dd0146f/raw/ca9e4de78cd9d4f16617cb5761c9f6936b6de535/package-lock.json
+    - run: wget -O scss/example/example.scss https://gist.githubusercontent.com/xurizaemon/bb913e18152dce35f9633b61f97de27b/raw/0bbd56e01d89cb350c173c3f10d2c267e0415d5e/example.scss
+    - run: catalyst-frontend
+    - run: npm run stylelint
+    - name: Archive production artifacts
+      uses: actions/upload-artifact@v1
+      with:
+        name: .
+        path: dist
